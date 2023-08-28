@@ -8,7 +8,7 @@ import {
 import { Injectable } from '@nestjs/common';
 
 import { nameModelsPrismaType } from 'src/@types/prismaTypes';
-import { PrismaService } from 'src/database/prisma.service';
+import { PrismaService } from 'src/infra/database/prisma.service';
 
 @Injectable()
 @ValidatorConstraint()
@@ -21,7 +21,7 @@ export class IsUniqueConstraint implements ValidatorConstraintInterface {
   ): Promise<boolean> {
     const [model, field] = validationArguments.constraints as [string, string];
 
-    const exists = await this.prismaService[model].findFirst({
+    const exists = await this.prismaService[model].count({
       where: {
         [field]: value,
       },

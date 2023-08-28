@@ -1,13 +1,10 @@
 import { Module } from '@nestjs/common';
-import { Global } from '@nestjs/common';
-import { UserModule } from './modules/user/user.module';
-import { PrismaService } from './database/prisma.service';
-import { IsUniqueConstraint } from './utils/customValidations/is-unique';
-
-@Global()
+import { UserModule } from './modules/access-control/user/user.module';
+import { AuthModule } from './modules/access-control/auth/auth.module';
+import { GlobalModule } from './modules/@global/global.module';
 @Module({
-  imports: [UserModule],
-  providers: [PrismaService, IsUniqueConstraint],
-  exports: [PrismaService, IsUniqueConstraint],
+  imports: [UserModule, AuthModule, GlobalModule],
+  providers: [],
+  exports: [],
 })
 export class AppModule {}

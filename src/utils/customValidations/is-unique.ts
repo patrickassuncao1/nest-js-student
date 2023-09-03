@@ -29,8 +29,11 @@ export class IsUniqueConstraint implements ValidatorConstraintInterface {
 
     return exists ? false : true;
   }
-  defaultMessage?(): string {
-    return 'existing data';
+  defaultMessage?(validationArguments?: ValidationArguments): string {
+    //eslint-disable-next-line
+    const [model, field] = validationArguments.constraints as [string, string];
+
+    return `${field} já cadastrado`;
   }
 }
 

@@ -6,10 +6,12 @@ import { ResponseMessage } from 'src/infra/message/response-message';
 import { LoginDto } from './dtos/login.dto';
 import { CustomRequestType } from 'src/@types/other';
 import { ResponseFormat } from 'src/infra/Interceptors/models/ResponseFormat';
+import { Public } from './decorators/is-public.decorator';
 
 @ApiExtraModels(ResponseFormat)
 @ApiTags('Auth')
 @Controller('auth')
+@Public()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

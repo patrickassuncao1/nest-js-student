@@ -19,6 +19,8 @@ export class UserService {
       },
     });
 
+    delete newUser.password;
+
     return newUser;
   }
 }

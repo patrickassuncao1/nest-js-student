@@ -1,6 +1,6 @@
-import { User } from '@prisma/client';
 import { Request } from 'express';
+import { RequestUser } from '../auth';
 
 export type CustomRequestType = Request & {
-  user: User;
+  user: RequestUser
 };

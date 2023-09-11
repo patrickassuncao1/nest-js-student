@@ -3,7 +3,10 @@ import { compare } from 'bcryptjs';
 import { LoginDto } from './dtos/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/infra/database/prisma.service';
-import { User } from '@prisma/client';
+import { GenerateRefreshToken } from './useCases/generate-refresh-token';
+import { UserPayload } from './models/UserPayload';
+import { PermissionUser } from './useCases/permission-user';
+import { RequestUser } from 'src/@types/auth';
 
 @Injectable()
 export class AuthService {
@@ -12,8 +15,8 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser({ email, password }: LoginDto) {
-    const usersAlreadyExists = await this.prismaService.user.findFirst({
+  async validateUser({ email, senha }: LoginDto): Promise<RequestUser> {
+    const usersAlreadyExists = await this.prismaService.usuario.findFirst({
       where: {
         email: email,
       },
@@ -23,22 +26,42 @@ export class AuthService {
       throw new BadRequestException('Email ou senha incorreta');
     }
 
-    const passwordMatch = await compare(password, usersAlreadyExists.password);
+    const passwordMatch = await compare(senha, usersAlreadyExists.senha);
 
     if (!passwordMatch) {
       throw new BadRequestException('Email ou senha incorreta');
     }
 
-    return usersAlreadyExists;
-  }
-
-  login(user: User) {
-    const payload = { username: user.name, sub: user.id };
+    const { perfis, permissions } = await new PermissionUser(
+      this.prismaService,
+    ).execute(usersAlreadyExists.id);
 
     return {
-      ...user,
+      user: usersAlreadyExists,
+      permissions: permissions,
+      perfis: perfis,
+    };
+  }
+
+  async login(data: RequestUser) {
+    const { user, permissions, perfis } = data;
+
+    const payload: UserPayload = {
+      userId: user.id,
+      permissions: permissions,
+      perfis: perfis,
+    };
+
+    const refresh_token = await new GenerateRefreshToken(
+      this.prismaService,
+    ).execute(user.id);
+
+    delete refresh_token.expires_in;
+
+    return {
+      ...data,
       accessToken: this.jwtService.sign(payload),
-      refreshToken: this.jwtService.sign(payload, { expiresIn: '7d' }),
+      refreshToken: refresh_token,
     };
   }
 }

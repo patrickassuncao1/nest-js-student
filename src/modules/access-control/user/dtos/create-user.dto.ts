@@ -1,15 +1,21 @@
-
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { usuario } from '@prisma/client';
+import { IsEmail, IsNotEmpty, IsUUID } from 'class-validator';
 import { IsUnique } from 'src/utils/customValidations/is-unique';
-
-export class CreateUserDto {
+export class CreateUserDto implements Partial<usuario> {
   @IsNotEmpty()
-  name: string;
+  nome: string;
 
-  @IsUnique('user', 'email')
+  @IsNotEmpty()
+  cpf: string;
+
+  @IsUnique('usuario', 'email')
   @IsEmail()
   email: string;
 
   @IsNotEmpty()
-  password: string;
+  senha: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  criado_por: string;
 }

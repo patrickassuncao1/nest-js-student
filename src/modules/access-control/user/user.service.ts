@@ -8,19 +8,20 @@ export class UserService {
   constructor(private prismaService: PrismaService) {}
 
   async create(user: CreateUserDto) {
-    const { password, ...rest } = user;
+    const { senha, ...rest } = user;
 
-    const hashedPassword = await hash(password, 8);
+    const hashedPassword = await hash(senha, 8);
 
-    const newUser = await this.prismaService.user.create({
+    const newUser = await this.prismaService.usuario.create({
       data: {
-        password: hashedPassword,
+        senha: hashedPassword,
         ...rest,
       },
     });
 
-    delete newUser.password;
+    //eslint-disable-next-line
+    const { senha: password, ...restUser } = newUser;
 
-    return newUser;
+    return restUser;
   }
 }

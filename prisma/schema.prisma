@@ -10,28 +10,145 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 
-  schemas = ["access_control"]
+  schemas = ["controle_acesso"]
 }
 
-model User {
-  id           String         @id @default(uuid())
-  name         String
-  email        String         @unique
-  password     String
-  created_at   DateTime       @default(now())
-  updated_at   DateTime       @updatedAt
-  RefreshToken RefreshToken[]
+model modulo {
+  id             String    @id() @default(uuid()) @db.Uuid
+  nome           String    @unique() @db.VarChar(100)
+  icone          String    @db.VarChar(45)
+  administrador  Boolean   @default(false)
+  url            String?   @unique() @db.VarChar(30)
+  descricao      String?   @db.VarChar(200)
+  ativo          Boolean   @default(true)
+  ordem          Int       @unique() @db.SmallInt
+  criado_em      DateTime  @default(now()) @db.Timestamp(6)
+  atualizado_em  DateTime? @updatedAt
+  deletado_em    DateTime? @db.Timestamp(6)
+  criado_por     String?   @db.Uuid
+  atualizado_por String?   @db.Uuid
 
-  @@map("users")
-  @@schema("access_control")
+  submodulo submodulo[]
+
+  @@schema("controle_acesso")
 }
 
-model RefreshToken {
-  id        String @id @default(uuid())
-  expiresIn Int
-  user      User   @relation(fields: [userId], references: [id])
-  userId    String
+model submodulo {
+  id             String     @id() @default(uuid()) @db.Uuid
+  modulo_id      String     @db.Uuid
+  nome           String     @db.VarChar(100)
+  icone          String     @db.VarChar(45)
+  url            String     @db.VarChar
+  menu           Boolean    @default(false)
+  descricao      String?    @db.VarChar(255)
+  ordem          Int?
+  criado_em      DateTime   @default(now()) @db.Timestamp(6)
+  atualizado_em  DateTime?  @updatedAt
+  deletado_em    DateTime?  @db.Timestamp(6)
+  criado_por     String?    @db.Uuid
+  atualizado_por String?    @db.Uuid
+  ativo          Boolean    @default(true)
+  operacao       operacao[]
+  modulo         modulo     @relation(fields: [modulo_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
-  @@map("refresh_token")
-  @@schema("access_control")
+  @@unique([icone, modulo_id], map: "submodulo_modulo_icone_un")
+  @@unique([modulo_id, nome], map: "submodulo_modulo_nome_un")
+  @@unique([modulo_id, ordem], map: "submodulo_modulo_ordem_un")
+  @@unique([modulo_id, url], map: "submodulo_modulo_url_un")
+  @@schema("controle_acesso")
+}
+
+model perfil {
+  id              String            @id() @default(uuid()) @db.Uuid
+  nome            String            @unique() @db.VarChar(30)
+  identificador   String            @unique() @db.VarChar(20)
+  administrador   Boolean           @default(false)
+  criado_em       DateTime          @default(now()) @db.Timestamp(6)
+  atualizado_em   DateTime?         @updatedAt
+  deletado_em     DateTime?         @db.Timestamp(6)
+  criado_por      String?           @db.Uuid
+  atualizado_por  String?           @db.Uuid
+  ativo           Boolean           @default(true)
+  perfil_operacao perfil_operacao[]
+  usuario_perfil  usuario_perfil[]
+
+  @@schema("controle_acesso")
+}
+
+model operacao {
+  id              String            @id() @default(uuid()) @db.Uuid
+  submodulo_id    String            @db.Uuid
+  nome            String            @db.VarChar(100)
+  identificador   String            @db.VarChar(50)
+  url             String?           @db.VarChar(50)
+  icone           String?           @db.VarChar(45)
+  pagina          Boolean           @default(false)
+  descricao       String?           @db.VarChar(200)
+  criado_em       DateTime          @default(now()) @db.Timestamp(6)
+  atualizado_em   DateTime?         @updatedAt
+  deletado_em     DateTime?         @db.Timestamp(6)
+  criado_por      String?           @db.Uuid
+  atualizado_por  String?           @db.Uuid
+  ativo           Boolean           @default(true)
+  submodulo       submodulo         @relation(fields: [submodulo_id], references: [id])
+  perfil_operacao perfil_operacao[]
+
+  @@unique([submodulo_id, identificador], map: "operacao_submodulo_identificador_un")
+  @@unique([submodulo_id, nome], map: "operacao_submodulo_nome_un")
+  @@unique([submodulo_id, url], map: "operacao_submodulo_url_un")
+  @@schema("controle_acesso")
+}
+
+model perfil_operacao {
+  perfil_id   String    @db.Uuid
+  operacao_id String    @db.Uuid
+  criado_em   DateTime  @default(now()) @db.Timestamp(6)
+  deletado_em DateTime? @db.Timestamp(6)
+  criado_por  String?   @db.Uuid
+  operacao    operacao  @relation(fields: [operacao_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  perfil      perfil    @relation(fields: [perfil_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+
+  @@unique([perfil_id, operacao_id], map: "perfil_operacao_un")
+  @@schema("controle_acesso")
+}
+
+model usuario_perfil {
+  usuario_id  String    @id @default(uuid()) @db.Uuid
+  perfil_id   String    @db.Uuid
+  criado_em   DateTime  @default(now()) @db.Timestamp(6)
+  deletado_em DateTime? @db.Timestamp(6)
+  criado_por  String?   @db.Uuid
+  perfil      perfil    @relation(fields: [perfil_id], references: [id])
+
+  usuario usuario? @relation(fields: [usuario_id], references: [id])
+
+  @@unique([usuario_id, perfil_id], map: "usuario_perfil_un")
+  @@schema("controle_acesso")
+}
+
+model usuario {
+  id            String    @id @default(uuid()) @db.Uuid
+  nome          String
+  email         String    @unique
+  cpf           String    @unique @db.VarChar(15)
+  senha         String
+  ativo         Boolean   @default(true)
+  criado_em     DateTime  @default(now()) @db.Timestamp(6)
+  atualizado_em DateTime? @updatedAt
+  deletado_em   DateTime? @db.Timestamp(6)
+  criado_por    String?   @db.Uuid
+
+  usuario_perfil usuario_perfil[]
+  refresh_token  refresh_token?
+
+  @@schema("controle_acesso")
+}
+
+model refresh_token {
+  id         String   @id @default(uuid()) @db.Uuid
+  usuario_id String?  @unique @db.Uuid
+  expires_in Int
+  usuario    usuario? @relation(fields: [usuario_id], references: [id])
+
+  @@schema("controle_acesso")
 }

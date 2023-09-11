@@ -22,10 +22,15 @@ export class AuthController {
   async login(@Request() request: CustomRequestType) {
     const userReq = request.user;
 
-    const { accessToken, refreshToken, ...user } =
-      this.authService.login(userReq);
+    const { accessToken, refreshToken, permissions, user } =
+      await this.authService.login(userReq);
 
-    const responseMessage = new ResponseMessage('Success', user);
+    delete user.senha;
+
+    const responseMessage = new ResponseMessage('Success', {
+      user,
+      permissions,
+    });
 
     return {
       ...responseMessage,

@@ -8,9 +8,11 @@ import { envConfig } from 'src/infra/env/env';
 import { PrismaService } from 'src/infra/database/prisma.service';
 import { requestTest } from './test/mocks';
 import { CustomRequestType } from 'src/@types/other';
+import { createRandomRefreshToken } from 'src/infra/database/test/factories/refresh-token-factory';
 
 describe('AuthController', () => {
   let authController: AuthController;
+  let prisma: PrismaService;
 
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
@@ -25,11 +27,17 @@ describe('AuthController', () => {
     }).compile();
 
     authController = app.get<AuthController>(AuthController);
-    app.get<PrismaService>(PrismaService);
+    prisma = app.get<PrismaService>(PrismaService);
   });
 
   describe('Login', () => {
     it('should return access Token"', async () => {
+      const refreshToken = createRandomRefreshToken();
+      prisma.refresh_token.findFirst = jest
+        .fn()
+        .mockResolvedValue(refreshToken);
+      prisma.refresh_token.create = jest.fn().mockResolvedValue(refreshToken);
+
       // act
       const login = await authController.login(
         requestTest as CustomRequestType,
@@ -39,5 +47,4 @@ describe('AuthController', () => {
       expect(login).toHaveProperty('accessToken');
     });
   });
-  
 });

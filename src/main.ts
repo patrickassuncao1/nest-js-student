@@ -5,6 +5,7 @@ import { ValidationError, useContainer } from 'class-validator';
 import { configSwagger } from './infra/swagger/swagger';
 import { ResponseInterceptor } from './infra/interceptors/ResponseInterceptor';
 import { defaultErrorValidatorMessage } from './infra/message/validation-error';
+import { corsOptions } from './infra/cors';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -23,6 +24,8 @@ async function bootstrap() {
   configSwagger(app);
 
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
+
+  app.enableCors(corsOptions);
 
   await app.listen(3000);
 }

@@ -1,13 +1,17 @@
-import { User } from '@prisma/client';
+import { usuario } from '@prisma/client';
 import { faker } from '@faker-js/faker';
 
-export function createRandomUser(): User {
+export function createRandomUser(): usuario {
   return {
-    id: 'f343bb48-de72-4d18-9d1d-fc4d5205b2e8',
-    name: faker.internet.userName(),
+    id: faker.string.uuid(),
+    nome: faker.internet.userName(),
     email: faker.internet.email(),
-    password: faker.internet.password(),
-    updated_at: faker.date.anytime(),
-    created_at: faker.date.anytime(),
+    senha: faker.internet.password(),
+    atualizado_em: faker.date.anytime(),
+    criado_em: faker.date.anytime(),
+    criado_por: faker.string.uuid(),
+    ativo: true,
+    cpf: faker.string.alphanumeric(11),
+    deletado_em: null,
   };
 }

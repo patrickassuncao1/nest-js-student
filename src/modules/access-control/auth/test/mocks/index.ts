@@ -7,5 +7,8 @@ export const requestTest = {
   query: {},
   body: {},
   headers: {},
-  user: randomUser,
+  user: {
+    user: randomUser,
+    permissions: [],
+  },
 };
